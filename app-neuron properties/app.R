@@ -1,6 +1,7 @@
 library(shiny)
 library(rstatix)
 library(tidyverse)
+library(plotly)
 
 # runExample("01_hello")      # a histogram
 # runExample("02_text")       # tables and data frames
@@ -14,7 +15,7 @@ library(tidyverse)
 # runExample("10_download")   # file download wizard
 # runExample("11_timer")      # an automated timer
 
-df <- readxl::read_xlsx("/Users/alix/Box Sync/Alix Northwestern LAB SYNC/Ephys/Perforated patch/AP properties/Perforated Q175 AP waveform analysis.xlsx")
+df <- readxl::read_xlsx("Perforated Q175 AP waveform analysis.xlsx")
 
 # function to calculte curvature from 1st, 2nd and 3rd order derivatives
 curvature <- function(x){
@@ -102,18 +103,14 @@ ui <- fluidPage(
                            h4("Waveform"),
                            plotOutput("plot"),
                            h4("Phase plot"),
-                           plotOutput("phaseplot", 
-                                      click = "plot_click"),
-                           h4("Phase plot values"),
-                           verbatimTextOutput("position")),
+                           plotlyOutput("phaseplot")
+                           ),
                   tabPanel("Properties", 
                            h3("Summary"),
                            tableOutput("properties"))
                   )
     )
   )
-  
-  
 )
 
 
@@ -158,7 +155,7 @@ server <- function(input, output) {
                  color = "red") 
   })
   
-  output$phaseplot = renderPlot({
+  output$phaseplot = renderPlotly({
     
     dff %>% 
       filter(neuron == input$file) %>% 
@@ -168,14 +165,7 @@ server <- function(input, output) {
       geom_point(data = . %>% filter(!is.na(timing)), 
                  aes(x = threshold, y = dV, color = "red")) +
       theme(legend.position = "none")
-      
-     
-  }, width = 600)
-  
-  output$position <- renderText({
-    paste0("x = ", input$plot_click$x, "\ny = ", input$plot_click$y)
   })
-  
 }
 
 # Run the app ----
