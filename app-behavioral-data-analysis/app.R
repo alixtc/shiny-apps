@@ -36,7 +36,7 @@ ui <- fluidPage(
       selectInput("file", 
                   h3("Select a type of experiment"), 
                   choices = file_list,
-                  selected = "",),
+                  selected = file_list[1],),
       
       varSelectInput("variable",
                      data = "",
@@ -101,14 +101,14 @@ server <- function(session, input, output){
     
     # To update possible variable choice in UI
     update_choice <- df %>% 
-      select(-c("rats", "groupe", "cond", "bloc", "trend"))
+      select(-c("rats", "groupe", "cond", "bloc", "trend")) 
     
     
     updateVarSelectInput(session, 
                          inputId = "variable", 
                          data = update_choice,
                          label = "Select your variable of interest",
-                         selected = 1)
+                         selected = names(update_choice)[[1]])
     return(df)
   })
   

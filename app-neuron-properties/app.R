@@ -17,24 +17,24 @@ library(plotly)
 
 df <- readxl::read_xlsx("Perforated Q175 AP waveform analysis.xlsx")
 
+
+# Calculate 1st order derivative centered on point with paddind on both sides
+derivative <- function(x){
+  Deri <- diff(x, lag  = 2, differences = 1) / 2
+  Deri <- c(NA, Deri, NA) / 0.04
+}
+
+
 # function to calculte curvature from 1st, 2nd and 3rd order derivatives
 curvature <- function(x){
-  D1 <- diff(x, lag  = 2, differences = 1) / 2
-  D1 <- c(NA, D1, NA) / 0.04
+  D1 <- derivative(x)
   
-  D2 <- diff(D1, lag  = 2, differences = 1) / 2
-  D2 <- c(NA, D2, NA) / 0.04
+  D2 <- derivative(D1)
   
-  D3 <- diff(D2, lag  = 2,differences = 1) / 2
-  D3 <- c(NA, D3, NA) / 0.04
+  D3 <- derivative(D2)
   
   res <- ( D3 * D1 - D2 ^ 2 )/ ( D1 ^ 3 )
   
-}
-
-derivative <- function(x){
-  D1 <- diff(x, lag  = 2, differences = 1) / 2
-  D1 <- c(NA, D1, NA) / 0.04
 }
   
 # Select neurons to analyse
@@ -103,7 +103,7 @@ ui <- fluidPage(
                            h4("Waveform"),
                            plotOutput("plot"),
                            h4("Phase plot"),
-                           plotlyOutput("phaseplot")
+                           plotlyOutput("phaseplot", height = 600)
                            ),
                   tabPanel("Properties", 
                            h3("Summary"),
