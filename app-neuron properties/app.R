@@ -1,4 +1,6 @@
 library(shiny)
+library(rstatix)
+library(tidyverse)
 
 # runExample("01_hello")      # a histogram
 # runExample("02_text")       # tables and data frames
