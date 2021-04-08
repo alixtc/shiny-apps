@@ -36,7 +36,7 @@ curvature <- function(x){
   res <- ( D3 * D1 - D2 ^ 2 )/ ( D1 ^ 3 )
   
 }
-  
+
 # Select neurons to analyse
 dff <- df %>% 
   select(contains("Events")) %>% 
@@ -71,23 +71,13 @@ dff <- dff %>%
   group_by(neuron) %>%
   mutate(timing = ifelse(voltage == max(threshold), time, NA ))
 
-# Plot each neuron AP with threshold on the curve
-# plot <- dff %>% 
-#   ggplot(aes(x = time, y = voltage)) + 
-#   geom_line() + 
-#   geom_point(aes(timing, threshold, color = "red")) + 
-#   facet_wrap(~neuron)
-# 
-# plot(plot)
-
-
-
 # Put all the names of the neurons in a list to select them individually in the app
 vnames <- unique(dff$neuron)
 vnames <- `names<-`(as.list(vnames), vnames)
 
 # Define UI ----
 ui <- fluidPage(
+  theme = bslib::bs_theme(bootswatch = "darkly"), # Set theme for app
   titlePanel(h1("Neuronal property analysis", align = "center")),
   
   sidebarLayout(
@@ -95,20 +85,20 @@ ui <- fluidPage(
                              h3("Select a neuron"), 
                              choices = vnames,
                              selected = 1)
-                 ),
+    ),
     
     mainPanel(
-      tabsetPanel(type = "tabs",
-                  tabPanel("Plot",
-                           h4("Waveform"),
-                           plotOutput("plot"),
-                           h4("Phase plot"),
-                           plotlyOutput("phaseplot", height = 600)
-                           ),
-                  tabPanel("Properties", 
-                           h3("Summary"),
-                           tableOutput("properties"))
-                  )
+      navbarPage(" ",
+                 tabPanel("Plot",
+                          h4("Waveform"),
+                          plotOutput("plot"),
+                          h4("Phase plot"),
+                          plotlyOutput("phaseplot", height = 600)
+                 ),
+                 tabPanel("Properties", 
+                          h3("Summary"),
+                          tableOutput("properties"))
+      )
     )
   )
 )
@@ -119,6 +109,8 @@ ui <- fluidPage(
 
 # Define server logic ----
 server <- function(input, output) {
+  
+  thematic::thematic_shiny() # adapt plot theme to current theme
   
   newdata <- reactive({
     data <- dff %>% filter(neuron == input$file) 
