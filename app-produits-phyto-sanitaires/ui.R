@@ -30,7 +30,7 @@ ui <- fluidPage(
                 tabsetPanel(
                     tabPanel("Map", plotOutput("france_map", width = "150%", height = 1000)),
                     tabPanel("Bar Chart",
-                             p("Use this interactive graph to display the desired information about each compound."),
+                             h6(" Note: Use this interactive graph to display the desired information about each compound."),
                              plotlyOutput("bar_graph", width = "150%", height = 800))
                 )
             )
