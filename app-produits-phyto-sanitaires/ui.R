@@ -25,13 +25,17 @@ ui <- fluidPage(
             title ="France", 
             
             titlePanel("Mainland Data"),
+          
             
             mainPanel(
                 tabsetPanel(
-                    tabPanel("Map", plotOutput("france_map", width = "150%", height = 1000)),
+                    tabPanel("Map", 
+                             h6("Legend: Graphical representation of the amount of phytosanitary products 
+               purchased each year in France for each departement."),
+                             plotOutput("france_map", width = "140%", height = 1000)),
                     tabPanel("Bar Chart",
                              h6("Note: Use this interactive graph to display the desired information about each compound."),
-                             plotlyOutput("bar_graph", width = "150%", height = 800))
+                             plotlyOutput("bar_graph", width = "140%", height = 800))
                 )
             )
         ),
