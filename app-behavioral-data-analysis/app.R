@@ -39,9 +39,9 @@ ui <- fluidPage(
                   selected = file_list[1],),
       
       varSelectInput("variable",
+                     label = h3("Select variable to analyse"),
                      data = "",
-                     selected = "",
-                     label = h3("Select variable to analyse")),
+                     selected = ""),
       
       radioButtons("normalize", 
                    label = "Choose method of normalization", 

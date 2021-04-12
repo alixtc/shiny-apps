@@ -78,7 +78,7 @@ vnames <- `names<-`(as.list(vnames), vnames)
 # Define UI ----
 ui <- fluidPage(
   theme = bslib::bs_theme(bootswatch = "darkly"), # Set theme for app
-  titlePanel(h1("Neuronal property analysis", align = "center")),
+  titlePanel(h1("Neuronal Property Analysis", align = "center")),
   
   sidebarLayout(
     sidebarPanel(selectInput("file", 
@@ -91,7 +91,7 @@ ui <- fluidPage(
       navbarPage(" ",
                  tabPanel("Plot",
                           h4("Waveform"),
-                          plotOutput("plot"),
+                          plotlyOutput("plot"),
                           h4("Phase plot"),
                           plotlyOutput("phaseplot", height = 600)
                  ),
@@ -134,7 +134,7 @@ server <- function(input, output) {
   }) 
   
   
-  output$plot = renderPlot({
+  output$plot = renderPlotly({
     
     dff %>% 
       filter(neuron == input$file) %>% 
@@ -144,7 +144,8 @@ server <- function(input, output) {
                  aes(timing, threshold), # Plot the threshold value
                  size = 3,
                  alpha = 0.3,
-                 color = "red") 
+                 color = "red") +
+      labs(x = "Time (ms)", y = "Voltage (mV)")
   })
   
   output$phaseplot = renderPlotly({
