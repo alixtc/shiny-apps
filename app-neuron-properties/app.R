@@ -59,6 +59,12 @@ dff <- dff %>%
           curve = curve * (curve >= 0),
           time_maxV = time[voltage == max(voltage)])
 
+# Restrict data to 30 data points before and after the peak
+dff <- dff %>% 
+  group_by(neuron) %>% 
+  filter(time >=(time_maxV - 30) & time < (time_maxV + 30))
+
+
 #  Keep curvatures data for the 25  points before peak and  extract threshold from it
 thresholds <- dff %>% 
   mutate(curve = curve * (time > time_maxV - 25 & time <= time_maxV)) %>%
@@ -78,7 +84,7 @@ vnames <- `names<-`(as.list(vnames), vnames)
 # Define UI ----
 ui <- fluidPage(
   theme = bslib::bs_theme(bootswatch = "darkly"), # Set theme for app
-  titlePanel(h1("Neuronal Property Analysis", align = "center")),
+  titlePanel(h1("Neuronal Property Analysis - Initiation Threshold Calculation", align = "center")),
   
   sidebarLayout(
     sidebarPanel(selectInput("file", 
@@ -91,8 +97,11 @@ ui <- fluidPage(
       navbarPage(" ",
                  tabPanel("Plot",
                           h4("Waveform"),
+                          p("Display of the action potential waveform and calculated threshold for its initiation (Red dot)"),
                           plotlyOutput("plot"),
+                          
                           h4("Phase plot"),
+                          p("Plot of the first order derivative of the voltage vs. the voltage highlighting the change in slope at the threshold (Red dot)"), 
                           plotlyOutput("phaseplot", height = 600)
                  ),
                  tabPanel("Properties", 
@@ -142,8 +151,8 @@ server <- function(input, output) {
       geom_line() +
       geom_point(data = . %>% filter(!is.na(timing)), # Removes NA values from plot
                  aes(timing, threshold), # Plot the threshold value
-                 size = 3,
-                 alpha = 0.3,
+                 size = 2,
+                 alpha = 0.5,
                  color = "red") +
       labs(x = "Time (ms)", y = "Voltage (mV)")
   })
@@ -156,8 +165,10 @@ server <- function(input, output) {
       ggplot(aes(x = voltage, y = dV)) +
       geom_path() + geom_point(alpha = 0.3) +
       geom_point(data = . %>% filter(!is.na(timing)), 
-                 aes(x = threshold, y = dV, color = "red")) +
-      theme(legend.position = "none")
+                 aes(x = threshold, y = dV), color = "red") +
+      theme(legend.position = "none")+
+      labs(x = "Time (ms)", y = "derivative of voltage (dV/dt)")
+    
   })
 }
 

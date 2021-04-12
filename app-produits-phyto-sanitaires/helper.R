@@ -19,7 +19,7 @@ carte <-
                   layer = "DEPARTEMENT",
                   quiet = TRUE) %>% 
   st_transform(2154) %>% 
-  st_simplify(dTolerance = 2000) %>% 
+  st_simplify(dTolerance = 2500) %>% 
   # changes the names of the variables
   janitor::clean_names() %>% 
   rename("departement" = "nom_dept")

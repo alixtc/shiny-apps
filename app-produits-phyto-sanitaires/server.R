@@ -115,7 +115,7 @@ server <- function(session, input, output) {
             scale_fill_viridis(name = "Quantity (in tons)", 
                                labels = function(x) format(x / 1000)) +
             geom_sf(show.legend =TRUE,
-                    lwd = 0.1) +  # Set thickness of border region (line width)
+                    lwd = 0.5) +  # Set thickness of border region (line width)
             coord_sf(crs = 4326) 
         
     })

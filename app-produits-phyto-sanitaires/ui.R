@@ -1,3 +1,4 @@
+library(bslib)
 library(shiny)
 library(shinyWidgets)
 library(sf)
@@ -15,7 +16,7 @@ source("helper.R")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-    
+    theme = bs_theme(bootswatch = "simplex", secondary = "#D9230F" ),
     navbarPage(
         title = "Purchase of pesticides products in France",
         

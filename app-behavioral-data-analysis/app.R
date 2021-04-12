@@ -1,3 +1,4 @@
+library(bslib)
 library(shiny)
 library(lme4)
 library(lmerTest)
@@ -9,28 +10,32 @@ library(tidyverse)
 
 file_list <- grep("csv", list.files(), value = TRUE)
 file_list <- as.list(file_list)
-names(file_list) <- c("cocaine inhibition",
-                      "cocaine stimulation",
-                      "food inhibition",
-                      "food stimulation")
+names(file_list) <- c("Drug test inhibition",
+                      "Drug test stimulation",
+                      "Food test inhibition",
+                      "Food test stimulation")
 
 # Stores in a list: list$new_name <- "old_names"
-var_names <- list(injection = "inje",
-                  pellets = "pellets",
-                  perseveratives = "pers",
-                  ratio = "ratio",
-                  errors = "err",
-                  food_magazine = "mang" )
+var_names <- list(Injections = "inje",
+                  Pellets = "pellets",
+                  Perseveratives = "pers",
+                  # ratio = "ratio",
+                  Errors = "err",
+                  `Food magazine responses` = "mang" )
 
 
 
 interest_vars <- c("rats", "groupe", 
                    "cond", "bloc", "trend", 
-                   "inje", "pellets", "pers", "ratio", "err", "mang" )
+                   "inje", "pellets", "pers", 
+                   # "ratio", 
+                   "err", "mang" )
 # ---- UI Definition ----
 ui <- fluidPage(
+  theme = bs_theme(bootswatch = "simplex"),
   titlePanel(h1("Behavioral analysis", align = "center")),
-  
+  p("Automated statistical analysis based on the selection of an 
+    experiment and one of the reacorded variables.", align = "center"),
   sidebarLayout(
     sidebarPanel(
       selectInput("file", 
@@ -56,15 +61,15 @@ ui <- fluidPage(
     mainPanel(
       tabsetPanel(type = "tabs",
                   tabPanel("Plot", plotOutput("plot")),
-                  tabPanel("Properties",
+                  tabPanel("Statisical Test",
                            fluidRow(
-                             h3("Summary"),
-                             verbatimTextOutput("debug"),
-                             h3("Anova"),
+                             h3("Summary Anova"),
+                             p("The statistical test on this page and the detailed analysis are 
+                               updated based on the choices on the left side bar"),
                              tableOutput("stats")
                            )
                   ),
-                  tabPanel("Analysis",
+                  tabPanel("Detailed Analysis",
                            h3("Wilcoxon test"),
                            dataTableOutput("analysis"))
       )
@@ -74,7 +79,7 @@ ui <- fluidPage(
 
 
 server <- function(session, input, output){
-  
+  thematic::thematic_shiny()
   # ---- Reactive functions ----
   
   df <- reactive({
@@ -83,9 +88,22 @@ server <- function(session, input, output){
     df <- read_csv(input$file) 
     names_to_remove <- setdiff(names(df),
                                interest_vars)
+    
+    # Format data
     df <- df %>% 
       select(-all_of(names_to_remove)) %>% 
-      mutate(trend = factor(trend))
+      rename("days" = "trend",
+             "subjects" = "rats") %>% 
+      mutate(days = factor(days)) %>% 
+      mutate(groupe = case_when(groupe == "eyfp"~ "control",
+                                  groupe == "stim"~ "stimulation",
+                                  groupe == "inhi"~ "inhibition")) %>% 
+      mutate(cond = case_when(cond == "laser"~ "test",
+                               TRUE~ cond)) %>%
+      mutate(cond = factor(cond, 
+                           levels = c("baseline", "test", "off", "challenge"),
+                           labels = c("baseline", "test", "off", "challenge")))
+    
     
     # Rename columns according to string stored list : var_names
     labs <- names(df)
@@ -101,7 +119,7 @@ server <- function(session, input, output){
     
     # To update possible variable choice in UI
     update_choice <- df %>% 
-      select(-c("rats", "groupe", "cond", "bloc", "trend")) 
+      select(-c("subjects", "groupe", "cond", "bloc", "days")) 
     
     
     updateVarSelectInput(session, 
@@ -122,7 +140,7 @@ server <- function(session, input, output){
       
       # Calculate average interest value for baseline
       baselineval <- normdata %>%
-        group_by(rats) %>%
+        group_by(subjects) %>%
         filter(cond == "baseline") %>%
         summarise(bval = mean(!!normvariable))
       
@@ -135,7 +153,7 @@ server <- function(session, input, output){
       
     }else if (state == 3) {
       normdata <-  normdata %>%
-        group_by(rats) %>%
+        group_by(subjects) %>%
         mutate( {{ normvariable }} := scale(!!normvariable))
     } else{
       return(normdata)
@@ -144,7 +162,7 @@ server <- function(session, input, output){
   
   # Statistical anova analysis on data
   stat_anova <- reactive({
-    form_anova <- as.formula(paste(input$variable, "~ groupe*trend + (1|rats)"))
+    form_anova <- as.formula(paste(input$variable, "~ groupe*days + (1|subjects)"))
     anova_df <- data()
     results <- lmer(form_anova, data = anova_df)
   })
@@ -154,7 +172,7 @@ server <- function(session, input, output){
   analysis <-  reactive({
     formu <- as.formula(paste(input$variable, "~ groupe"))
     data() %>% 
-      group_by(trend) %>% 
+      group_by(days) %>% 
       wilcox_test(formu) %>% 
       adjust_pvalue(method = "fdr") %>% 
       add_significance()
@@ -165,10 +183,13 @@ server <- function(session, input, output){
   
   output$plot <- renderPlot({
     data() %>% 
-      ggplot(aes(x = trend, !!input$variable , fill = groupe)) +
+      ggplot(aes(x = days, !!input$variable , fill = groupe)) +
       geom_boxplot() + 
-      ylab( names(var_names[var_names == paste(input$variable)]) ) +
-      xlab("Days")
+      scale_fill_manual(values = c("grey", "red")) +
+      facet_grid(~cond, space="free_x", scales="free_x", switch="x") +
+      ylab(input$variable ) +
+      xlab("Days") +
+      theme(panel.spacing = unit(0.1, "cm"))
     
   })
   
