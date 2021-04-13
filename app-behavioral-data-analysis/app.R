@@ -21,7 +21,7 @@ var_names <- list(Injections = "inje",
                   Perseveratives = "pers",
                   # ratio = "ratio",
                   Errors = "err",
-                  `Food magazine responses` = "mang" )
+                  Food_magazine_responses = "mang" )
 
 
 
