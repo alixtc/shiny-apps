@@ -21,7 +21,7 @@ var_names <- list(Injections = "inje",
                   Perseveratives = "pers",
                   # ratio = "ratio",
                   Errors = "err",
-                  Food_magazine_responses = "mang" )
+                  `Food magazine responses` = "mang" )
 
 
 
@@ -106,15 +106,15 @@ server <- function(session, input, output){
     
     
     # Rename columns according to string stored list : var_names
-    labs <- names(df)
-    labs <- map_chr(labs, function(x){
-      if(x %in% var_names){
-        x <- names(which(var_names == x))
-      } else{
-        x
-      }
-    })
-    names(df) <- labs
+    # labs <- names(df)
+    # labs <- map_chr(labs, function(x){
+    #   if(x %in% var_names){
+    #     x <- names(which(var_names == x))
+    #   } else{
+    #     x
+    #   }
+    # })
+    # names(df) <- labs
     
     
     # To update possible variable choice in UI
@@ -162,7 +162,8 @@ server <- function(session, input, output){
   
   # Statistical anova analysis on data
   stat_anova <- reactive({
-    form_anova <- as.formula(paste(input$variable, "~ groupe*days + (1|subjects)"))
+    form_anova <- as.formula(paste(var_names[[input$variable]], "~ groupe*days + (1|subjects)"))
+    browser()
     anova_df <- data()
     results <- lmer(form_anova, data = anova_df)
   })
@@ -170,7 +171,7 @@ server <- function(session, input, output){
   
   #  Statiscal analysis multiple wilcoxon test with mult.comp
   analysis <-  reactive({
-    formu <- as.formula(paste(input$variable, "~ groupe"))
+    formu <- as.formula(paste(var_names[[input$variable]], "~ groupe"))
     data() %>% 
       group_by(days) %>% 
       wilcox_test(formu) %>% 
