@@ -131,11 +131,11 @@ server <- function(input, output) {
   window <- c(t_peak - 30, t_peak + 30)
     
     newdata <- data %>% 
-      slice(window[1] : window[2]) %>% 
+      filter(time >= window[1] &time <  window[2]) %>% 
       summarise(Peak = max(voltage),
                 Antipeak = min(voltage),
                 Amplitude = Peak - Antipeak,
-                Distance_P_AP_in_ms = time[which(voltage == min(voltage))] - t_peak)
+                Distance_P_AP_in_ms = (time[which(voltage == min(voltage))] - t_peak) *0.04 )
   })
   
   output$properties = renderTable({
