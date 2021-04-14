@@ -62,7 +62,7 @@ dff <- dff %>%
 # Restrict data to 30 data points before and after the peak
 dff <- dff %>% 
   group_by(neuron) %>% 
-  filter(time >=(time_maxV - 30) & time < (time_maxV + 30))
+  filter(time >=(time_maxV - 50) & time < (time_maxV + 50))
 
 
 #  Keep curvatures data for the 25  points before peak and  extract threshold from it
@@ -128,7 +128,7 @@ server <- function(input, output) {
       distinct(time_maxV) %>% 
       pull(time_maxV)
     
-    window <- c(t_peak - 30, t_peak + 30)
+  window <- c(t_peak - 30, t_peak + 30)
     
     newdata <- data %>% 
       slice(window[1] : window[2]) %>% 
