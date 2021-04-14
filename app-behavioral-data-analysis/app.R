@@ -105,16 +105,16 @@ server <- function(session, input, output){
                            labels = c("baseline", "test", "off", "challenge")))
     
     
-    # Rename columns according to string stored list : var_names
-    # labs <- names(df)
-    # labs <- map_chr(labs, function(x){
-    #   if(x %in% var_names){
-    #     x <- names(which(var_names == x))
-    #   } else{
-    #     x
-    #   }
-    # })
-    # names(df) <- labs
+    #Rename columns according to string stored list : var_names
+    labs <- names(df)
+    labs <- map_chr(labs, function(x){
+      if(x %in% var_names){
+        x <- names(which(var_names == x))
+      } else{
+        x
+      }
+    })
+    names(df) <- labs
     
     
     # To update possible variable choice in UI
@@ -162,8 +162,7 @@ server <- function(session, input, output){
   
   # Statistical anova analysis on data
   stat_anova <- reactive({
-    form_anova <- as.formula(paste(var_names[[input$variable]], "~ groupe*days + (1|subjects)"))
-    browser()
+    form_anova <- as.formula(paste(input$variable, "~ groupe*days + (1|subjects)"))
     anova_df <- data()
     results <- lmer(form_anova, data = anova_df)
   })
@@ -171,7 +170,7 @@ server <- function(session, input, output){
   
   #  Statiscal analysis multiple wilcoxon test with mult.comp
   analysis <-  reactive({
-    formu <- as.formula(paste(var_names[[input$variable]], "~ groupe"))
+    formu <- as.formula(paste(input$variable, "~ groupe"))
     data() %>% 
       group_by(days) %>% 
       wilcox_test(formu) %>% 
