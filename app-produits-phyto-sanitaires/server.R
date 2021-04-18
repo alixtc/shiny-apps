@@ -1,11 +1,9 @@
 
 
-
-source("helper.R")
-
 # Define server logic required to draw a histogram
 server <- function(session, input, output) {
     
+
     
     # Dynamic UI for Product Comparison page
     observeEvent(input$sort_names,{
