@@ -2,4 +2,4 @@ library(shiny)
 source(file = "ui.R")
 source(file= "server.R")
 
-shinyApp(ui = myui, server = myserver)
+shinyApp(ui = ui, server = server)

@@ -1,7 +1,7 @@
 
 
 # Define server logic required to draw a histogram
-myserver <- function(session, input, output) {
+server <- function(session, input, output) {
     
 
     

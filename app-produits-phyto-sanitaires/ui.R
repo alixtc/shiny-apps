@@ -17,7 +17,7 @@ CSS_CODE <-  c(".shiny-notification {
              ")
 
 # Define UI for application that draws a histogram
-myui <- shinyUI({fluidPage(
+ui <- shinyUI({fluidPage(
     theme = bslib::bs_theme(version = 4,
                             bootswatch = "simplex", 
                             secondary = "#D9230F"),
