@@ -1,4 +1,3 @@
-library(shiny)
 library(shinyWidgets)
 library(plotly)
 library(sf)
@@ -8,13 +7,17 @@ library(RcppRoll)
 library(tidyverse)
 
 
-source("server.R")
 
 
-
+CSS_CODE <-  c(".shiny-notification {
+             position:fixed;
+             top: calc(25%);
+             left: calc(50%);
+             }
+             ")
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
+myui <- shinyUI({fluidPage(
     theme = bslib::bs_theme(version = 4,
                             bootswatch = "simplex", 
                             secondary = "#D9230F"),
@@ -35,7 +38,8 @@ ui <- fluidPage(
                             tabPanel("Map", 
                                      h6("Legend: Graphical representation of the amount of phytosanitary products 
                purchased each year in France for each departement."),
-               plotOutput("france_map", width = "140%", height = 1000)),
+               shinycssloaders::withSpinner(plotOutput("france_map", inline = TRUE #,  width = "140%"#, height = "auto"
+               ))),
                tabPanel("Bar Chart",
                         h6("Note: Use this interactive graph to display the desired information about each compound."),
                         plotlyOutput("bar_graph", width = "140%", height = 800))
@@ -74,13 +78,18 @@ ui <- fluidPage(
                    
                    # Show a plot of the generated distribution
                    fluidRow(
-                       plotOutput("compound_comp")
+                       plotOutput("compound_comp", height = 800)
                        
                    )
                ),
                
                # 3rd Tab
                tabPanel(
+                   
+                   # ------ Appropirate Notification placement -----
+                   tags$head(tags$style(HTML(CSS_CODE))),
+                   # ------ 
+                   
                    title ="Department Analysis", 
                    
                    titlePanel("Evolution of purchased quantity per departement"),
@@ -126,7 +135,7 @@ ui <- fluidPage(
                        ),
                        
                        # Show a plot of the generated distribution
-                       mainPanel(plotOutput("da_plot"))
+                       mainPanel(plotOutput("da_plot", height = 700))
                    )
                ),
                tabPanel(
@@ -138,12 +147,10 @@ ui <- fluidPage(
     ),
     # Footnote,
     hr(),
-    print("The data were collected on data.gouv.fr, in April 2021.
+    p("The data were collected on data.gouv.fr, in April 2021.
           Additional information on substance effects were collected from the
           available pages on Wikipedia and merge with main dataset based on CAS
-          number.
-          The group \"Other\" correponds to all the substances who each represented less that 0.5% of total.")
-)
+          number."),
+    p("The group \"Other\" correponds to all the substances who each represented less that 0.5% of total.")
+)})
 
-# Run the application 
-shinyApp(ui = ui, server = server, options = list(height = 1600))

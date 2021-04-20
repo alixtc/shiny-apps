@@ -1,7 +1,7 @@
 
 
 # Define server logic required to draw a histogram
-server <- function(session, input, output) {
+myserver <- function(session, input, output) {
     
 
     
@@ -26,13 +26,16 @@ server <- function(session, input, output) {
     
     # Product Comparison page: Select data and calculate values
     comp_data <-  eventReactive(input$draw, {
+        
         req(input$compound)
         condensed_df %>% 
             filter(substance %in% input$compound) %>% 
             group_by(annee, substance) %>% 
             summarise(quantite = sum(quantite), .groups = "drop") 
     })
-    
+   
+
+ 
     
     # DA Page: Dynamic UI
     
@@ -65,6 +68,9 @@ server <- function(session, input, output) {
     
     # DA Page: Variable selection
     da_data_selec <- eventReactive(input$da_plot, {
+        prog_notif <- showNotification("Drawing map. Please wait.",  duration = NULL, closeButton = FALSE)
+        on.exit(removeNotification(prog_notif), add = TRUE)
+        
         req(input$da_departement, input$da_subst,input$da_years)
         
         condensed_df %>% 
@@ -97,7 +103,7 @@ server <- function(session, input, output) {
                           choices = choices_substances
         )
     })
-    
+
     
     # ----- OUTPUTS ------
     
@@ -108,6 +114,7 @@ server <- function(session, input, output) {
             group_by(annee, departement) %>% 
             summarise(quantite = sum(quantite))
         
+        par(mar = rep(0, 4))
         carte %>% 
             left_join(data_for_map, by= "departement") %>%
             ggplot( aes(fill = quantite)) +
@@ -116,9 +123,14 @@ server <- function(session, input, output) {
                                labels = function(x) format(x / 1000)) +
             geom_sf(show.legend =TRUE,
                     lwd = 0.5) +  # Set thickness of border region (line width)
-            coord_sf(crs = 4326) 
+            coord_sf(crs = 4326)
+        # +
+        #     theme(plot.margin=grid::unit(c(0,0,0,0), "mm"),
+        #           plot.background=element_rect(fill="grey", colour=NA))
+        # 
+            
         
-    })
+    }, width = 1100, height = 800)
     
     # Plot with the quantity of each substance per year
     output$bar_graph <- renderPlotly({
@@ -173,7 +185,7 @@ server <- function(session, input, output) {
                        color = substance)) +
             geom_point() +
             geom_line() +
-            facet_wrap(~substance) +
+            facet_wrap(~substance, ncol = 3) +
             xlab("Year") + ylab("Quantity (tons)") +
             scale_y_continuous(labels = function(x) format(x / 1000))
     })
