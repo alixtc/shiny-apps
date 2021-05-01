@@ -109,21 +109,26 @@ server <- function(session, input, output) {
     
     output$france_map <- renderPlot({ 
         
-        # Calculate total quantities per year and department
-        data_for_map <- condensed_df %>% 
-            group_by(annee, departement) %>% 
-            summarise(quantite = sum(quantite))
+        # Map total quantities per year and department
         
-        par(mar = rep(0, 4))
-        carte %>% 
-            left_join(data_for_map, by= "departement") %>%
+        # data_for_map <- condensed_df %>% 
+        #     group_by(annee, departement) %>% 
+        #     summarise(quantite = sum(quantite))
+        # 
+        # 
+        # data_for_map <- carte %>% 
+        #     left_join(data_for_map, by= "departement")
+        
+       data_for_map %>%
             ggplot( aes(fill = quantite)) +
             facet_wrap(~annee) +
-            scale_fill_viridis(name = "Quantity (in tons)", 
+            scale_fill_viridis(name = "Quantity (in tons)",
                                labels = function(x) format(x / 1000)) +
             geom_sf(show.legend =TRUE,
                     lwd = 0.5) +  # Set thickness of border region (line width)
             coord_sf(crs = 4326)
+        
+        
         # +
         #     theme(plot.margin=grid::unit(c(0,0,0,0), "mm"),
         #           plot.background=element_rect(fill="grey", colour=NA))

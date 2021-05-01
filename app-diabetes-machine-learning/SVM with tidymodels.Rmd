@@ -1,0 +1,158 @@
+---
+title: "SVM with TidyModels"
+output: html_document
+---
+
+
+# SVM with TidyModels
+```{r}
+library(tidymodels)
+library(kernlab)
+library(caret)
+library(tictoc)
+library(themis)
+library(tidyverse)
+
+path <- "~/R/Deep Learning/"
+diabetes <- read_csv("~/R/Deep Learning/diabetes.csv")
+
+diabetes <- diabetes %>% mutate(Outcome = factor(Outcome))
+
+split <- initial_split(diabetes, prop = 0.8, strata = Outcome)
+train <- training(split)
+test <- testing(split)
+
+```
+## Basic SVM using tidymodels
+```{r}
+# A recipe
+reci_dia <- recipe(train, Outcome ~ .) %>% 
+  step_zv(all_predictors()) %>% 
+  step_lincomb(all_numeric()) %>% 
+  prep()
+
+traindf <- juice(reci_dia) 
+testdf <- bake(reci_dia, new_data = test)
+
+
+# A model 
+model_svm <- svm_rbf() %>% 
+  set_mode("classification") %>% 
+  set_engine("kernlab")
+
+# The actual fit
+res_svm <- model_svm %>% fit(data = traindf, Outcome ~ .)
+
+resu <- res_svm %>% predict(testdf) %>% pull(.pred_class)
+
+confusionMatrix(resu, testdf$Outcome)
+
+```
+##  Attempt with a workflow
+```{r}
+# Combine recipe + model in a workflow
+wf_svm <- workflow() %>% 
+  add_recipe(reci_dia) %>% 
+  add_model(model_svm)
+
+# The actual fit
+res_svm <- wf_svm %>% fit(traindf)
+
+resu <- res_svm %>% predict(testdf) %>% pull(.pred_class)
+
+confusionMatrix(resu, testdf$Outcome)
+```
+
+
+## Required for tuning
+```{r}
+# A recipe
+reci_dia <- recipe(train, Outcome ~ .) %>% 
+  step_zv(all_predictors()) %>% 
+  step_lincomb(all_numeric()) %>% 
+  step_downsample(Outcome) %>% 
+  prep()
+
+traindf <- juice(reci_dia) 
+testdf <- bake(reci_dia, new_data = test)
+
+
+# A model 
+model_svm <- svm_rbf( cost = tune(), rbf_sigma = tune()) %>% 
+  set_mode("classification") %>% 
+  set_engine("kernlab")
+
+# A resampling strategy
+strap_df <- bootstraps(traindf, times = 30)
+
+# How to control the search of parameters
+ctrl <- control_grid(verbose = FALSE, save_pred = TRUE)
+
+# The actual fit ~ 2 X faster with doParallel
+doParallel::registerDoParallel()
+
+tic()
+res_svm <- model_svm %>% tune(Outcome ~ .,
+                                   resamples = strap_df, 
+                                   
+                                   metrics = metric_set(accuracy, roc_auc),
+                                   control = ctrl)
+sequential <- toc()
+
+show_best(res_svm, metric = "accuracy")
+collect_metrics(res_svm) 
+
+best_para <- select_best(res_svm)
+```
+
+
+```{r}
+# Putt the model in a workflow witht th recipe and the best parameters
+final_svm_wf <- workflow() %>% 
+  add_recipe(recipe = reci_dia) %>% 
+  add_model(model_svm) %>% 
+  finalize_workflow(best_para)
+
+final_svm_wf <- final_svm_wf %>% 
+  fit(traindf)
+
+resu <- final_svm_wf %>% predict(testdf) %>% pull(.pred_class)
+
+
+confusionMatrix(resu, testdf$Outcome)
+
+```
+## Attempt with tune_bayes()
+```{r}
+# A model 
+model_svm <- svm_rbf( cost = tune(), rbf_sigma = tune()) %>% 
+  set_mode("classification") %>% 
+  set_engine("kernlab")
+
+# Control parameters for tune_bayes
+ctrl <- control_bayes(verbose = TRUE)
+
+res_svm <- model_svm %>% tune_bayes(Outcome ~ .,
+                                   resamples = strap_df, 
+                                   iter = 25,
+                                   metrics = metric_set(accuracy),
+                                   control = ctrl)
+show_best(res_svm)
+best_para <- select_best(res_svm)
+
+# Putt the model in a workflow witht th recipe and the best parameters
+final_svm_wf <- workflow() %>% 
+  add_recipe(recipe = reci_dia) %>% 
+  add_model(model_svm) %>% 
+  finalize_workflow(best_para)
+
+final_svm_wf <- final_svm_wf %>% 
+  fit(traindf)
+
+resu <- final_svm_wf %>% predict(testdf) %>% pull(.pred_class)
+
+
+confusionMatrix(resu, testdf$Outcome)
+```
+
+
