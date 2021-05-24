@@ -1,25 +1,46 @@
 library(shiny)
-
-generate_fields <- function(sub_index, global_index){ 
-    
-    sub_index <- (global_index - 1) * 9 + sub_index
-    # numericInput(
-    #     paste0("idx", sub_index), 
-    #     paste0("idx", sub_index), 
-    #     value = 1,  min = 1,max =  9, step = 1
-    #     )
-    textInput(
-        paste0("idx", sub_index),
-        paste0("idx", sub_index),
-        #value = 1,  min = 1,max =  9, step = 1
-        placeholder = " "
-        )
-}
-generate_columns <- function(global_index){ 
-
-    column(map( 1:9, generate_fields, global_index), width = 3)
-}
-
+library(shinyWidgets)
+# 
+# generate_fields <- function(sub_index, global_index, grid){ 
+#     
+#     sub_index <- (global_index - 1) * 9 + sub_index
+#     # numericInput(
+#     #     paste0("idx", sub_index), 
+#     #     paste0("idx", sub_index), 
+#     #     value = 1,  min = 1,max =  9, step = 1
+#     #     )
+#     if (is.na(grid[sub_index])) {
+#         
+#         # textInput(
+#         #     paste0("idx", sub_index),
+#         #     label = NULL,
+#         #     placeholder = " "
+#         # )
+#         # 
+#         # numericInput(
+#         #     paste0("idx", sub_index),
+#         #     label = NULL,
+#         #     label = paste0("idx", sub_index),
+#         #     value = 1,  min = 1,max =  9, step = 1
+#         # )
+#         # 
+#         pickerInput(
+#             paste0("idx", sub_index),
+#             label = NULL,
+#             choices = 1:9,
+#             selected = NULL,
+#             width = 'fit'
+#         )
+#     } else{
+#         h4(paste0(grid[sub_index], '<\n. '))
+#        
+#     }
+# 
+# }
+# generate_columns <- function(global_index, grid){ 
+#     column(map( 1:9, generate_fields, global_index, grid), width = 1)
+# }
+# 
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -45,10 +66,10 @@ ui <- fluidPage(
         # Show a plot of the generated distribution
         mainPanel(
             tableOutput("initial_grid"),
-            uiOutput('solving_puzzle'),
-            fluidRow(
-                map(1:9, generate_columns)
-            )
+            # uiOutput('solving_puzzle'),
+            # fluidRow(
+            #     map(1:9, generate_columns)
+            # )
         )
     )
 )
@@ -69,18 +90,15 @@ server <- function(input, output) {
     # Solve the grid automatically through recursive search
     observeEvent(input$solve_grid, {
         req(grid$grid)
-        print(grid$grid)
         solution <- successive_search(grid$grid)
         grid$grid <- solution$grid
     })
     
-    # 
-    # output$numeric <- renderUI({
-    #     if (input$type == "slider") {
-    #         sliderInput("dynamic", input$label, value = 0, min = 0, max = 10)
-    #     } else {
-    #         numericInput("dynamic", input$label, value = 0, min = 0, max = 10) 
-    #     }
+    # Print a 9x9 grid with text inputs below the actual sudoku
+    # observeEvent(input$getGrid,{ 
+    #     output$solving_puzzle <- renderUI({
+    #         map(1:9, generate_columns, grid$grid)
+    #     })
     # })
     
     output$initial_grid <- renderTable({
