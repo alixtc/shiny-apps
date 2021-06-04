@@ -56,8 +56,7 @@ ui <- fluidPage(
                         choices = list(
                             easy = 1,
                             medium = 2,
-                            hard = 3,
-                            insane = 4),
+                            hard = 3),
                         selected = 2),
             actionButton('getGrid', 'Get a new sudoku grid'),
             actionButton('solve_grid', 'Solve the Grid')
